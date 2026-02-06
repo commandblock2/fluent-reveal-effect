@@ -71,5 +71,5 @@ document.querySelectorAll(".effect-group-container").forEach((elem) => {
 
 ## Usage notes
 - **“Border” elements are wrappers**: the library does not create borders; you provide wrapper elements (e.g., `.btn-border`) and it paints the reveal gradient onto their background. This is how the “border glow” is achieved.
-- **Semi-transparency**: prefer `background-color: rgba(...)` for translucency. Using `opacity` on the element makes the reveal gradient and the text/icon fade together.
+- **Border size hard coded**: Currently the border fx is only of 1 px wide.
 - **Mandatory Container**: the container listens for `mousemove`, then checks each border element to see if the cursor’s gradient radius intersects it. Matching borders get a `radial-gradient` background; others are reset.
