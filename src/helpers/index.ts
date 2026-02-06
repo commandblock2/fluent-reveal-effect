@@ -104,7 +104,7 @@ function drawHoverEffect(
   drawEffect(element, x, y, lightColor, gradientSize);
 }
 
-function drawClickEffect(
+export function drawClickEffect(
   element: HTMLElement,
   lightColor: string,
   gradientSize: number,
@@ -157,6 +157,23 @@ function enableBackgroundEffects(
   const element = resource.el;
   const moveEvent = "onpointermove" in window ? "pointermove" : "mousemove";
   const leaveEvent = "onpointerleave" in window ? "pointerleave" : "mouseleave";
+
+  if (clickEffect) {
+    const downEvent = "onpointerdown" in window ? "pointerdown" : "mousedown";
+    const upEvent = "onpointerup" in window ? "pointerup" : "mouseup";
+    element.addEventListener(
+      downEvent, event => {
+        drawClickEffect(element, lightColor, gradientSize, event)
+      }
+    )
+
+    element.addEventListener(
+      upEvent, event => {
+        clearEffect(resource)
+        drawHoverEffect(element, lightColor, gradientSize, event)
+      }
+    )
+  }
 
   element.addEventListener(
     moveEvent,
@@ -286,20 +303,6 @@ export function enableBorderEffects(
   window.addEventListener("scroll", updateRects, { passive: true });
 }
 
-// Interfacew
-export function enableNormalBackgroundEffetcs(
-  resource: IResource,
-  options: IEffectOptions,
-  pressed: ElementWrapper
-) {
-  enableBackgroundEffects(
-    resource,
-    options.lightColor,
-    options.gradientSize,
-    options.clickEffect,
-    pressed
-  );
-}
 export function enableChildrenBackgroundEffetcs(
   resource: IResource,
   options: IEffectOptions,

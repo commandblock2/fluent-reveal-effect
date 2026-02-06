@@ -22,8 +22,7 @@ export interface IEffectOptions {
   lightColor: string | 'rgba(255,255,255,0.1)';
   gradientSize: number | 200;
   clickEffect: boolean | false;
-  isContainer: boolean | false;
-  children?: {
+  children: {
     borderSelector: string | '.eff-reveal-border';
     elementSelector: string | '.eff-reveal';
     lightColor: string | 'rgba(255,255,255,0.1)';

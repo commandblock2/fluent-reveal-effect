@@ -8,7 +8,6 @@ import {
 import {
   preProcessElement,
   preProcessSelector,
-  enableNormalBackgroundEffetcs,
   enableChildrenBackgroundEffetcs,
   enableBorderEffects,
 } from './helpers';
@@ -19,7 +18,6 @@ function applyEffectOption(userOptions: IUserEffectOptions): IEffectOptions {
     lightColor: 'rgba(255,255,255,0.25)',
     gradientSize: 150,
     clickEffect: true,
-    isContainer: false,
     children: {
       borderSelector: '.eff-reveal-border',
       elementSelector: '.eff-reveal',
@@ -85,7 +83,7 @@ export const applyElementEffect = (element: HTMLElement, userOptions: IUserEffec
     element.addEventListener(downEvent, event => {
       const target = event.target;
       if (target instanceof HTMLElement) {
-          pressed.element = target;
+        pressed.element = target;
       }
     }
     )
@@ -96,14 +94,7 @@ export const applyElementEffect = (element: HTMLElement, userOptions: IUserEffec
     )
   }
 
-
-  if (!options.isContainer) {
-    const enableBackgroundEffectsFunc = enableNormalBackgroundEffetcs;
-    applyChildrenElementEffect(resource, options, pressed, enableBackgroundEffectsFunc);
-  }
-  else {
-    const enableBackgroundEffectsFunc = enableChildrenBackgroundEffetcs;
-    applyContainerElementEffect(resource, options, pressed, enableBackgroundEffectsFunc);
-  }
+  const enableBackgroundEffectsFunc = enableChildrenBackgroundEffetcs;
+  applyContainerElementEffect(resource, options, pressed, enableBackgroundEffectsFunc);
 };
 
