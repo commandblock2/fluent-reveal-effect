@@ -2,7 +2,10 @@ export interface IResource {
     oriBg: string;
     el: HTMLElement;
 }
-export type IIsPressed = [boolean];
+export interface ClickedElement {
+    element: HTMLElement | null;
+    progress: number;
+}
 export interface IArea {
     left: number;
     right: number;
@@ -13,8 +16,7 @@ export interface IEffectOptions {
     lightColor: string | 'rgba(255,255,255,0.1)';
     gradientSize: number | 200;
     clickEffect: boolean | false;
-    isContainer: boolean | false;
-    children?: {
+    children: {
         borderSelector: string | '.eff-reveal-border';
         elementSelector: string | '.eff-reveal';
         lightColor: string | 'rgba(255,255,255,0.1)';
@@ -23,5 +25,5 @@ export interface IEffectOptions {
 }
 export type IUserEffectOptions = Partial<IEffectOptions>;
 export interface IEnableEffectFunc {
-    (element: IResource, options: IEffectOptions, is_pressed: IIsPressed): void;
+    (element: IResource, options: IEffectOptions, wrapper: ClickedElement): void;
 }

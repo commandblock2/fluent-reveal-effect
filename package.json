@@ -1,7 +1,7 @@
 {
   "name": "@commandblock2/fluent-reveal-effect",
   "displayName": "Fluent Reveal Effect",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Reveal Effect (Fluent Design), forked from d2phap",
   "type": "module",
   "module": "./dist/fluent-reveal-effect.js",
