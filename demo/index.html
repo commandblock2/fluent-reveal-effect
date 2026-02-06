@@ -5,151 +5,317 @@
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Fluent Design Effect Demo</title>
+        <style>
+            :root {
+                /* Background tint (mica overlay) */
+                --app-tint-rgb: 10, 10, 20;
+                --app-tint-alpha-start: 0.6;
+                --app-tint-alpha-end: 0.35;
+
+                /* Small visual tweaks */
+                --btn-overlay-alpha: 0.12;
+                --panel-bg: rgba(255, 255, 255, 0.08);
+                --btn-border-bg: rgba(255, 255, 255, 0.09);
+
+                /* Mica surface + controls (shared) */
+                --mica-surface-bg: rgba(255, 255, 255, 0.1);
+                --mica-surface-border: rgba(255, 255, 255, 0.18);
+
+                /* Controls inherit the exact same visual as the surface */
+                --mica-control-bg: var(--mica-surface-bg);
+                --mica-control-border: var(--mica-surface-border);
+            }
+
+            html,
+            body {
+                height: 100%;
+            }
+
+            /* Override demo/src/style.css body background + padding so the image shows through */
+            body {
+                margin: 0;
+                padding: 0 !important;
+                background: transparent !important;
+            }
+
+            #app {
+                min-height: 100vh;
+                padding: 3rem;
+                position: relative;
+
+                background-image: url("./src/background.png");
+                background-position: center;
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+            }
+
+            /* Tinted layer over the wallpaper (helps readability + "mica" vibe) */
+            #app::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+
+                background: linear-gradient(
+                    135deg,
+                    rgba(var(--app-tint-rgb), var(--app-tint-alpha-start)),
+                    rgba(var(--app-tint-rgb), var(--app-tint-alpha-end))
+                );
+            }
+
+            /* Acrylic/mica-like surface for the demo content */
+            .mica-surface {
+                position: relative;
+                z-index: 1;
+
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 2.25rem 2rem;
+
+                border-radius: 18px;
+                background: var(--mica-surface-bg);
+                border: 1px solid var(--mica-surface-border);
+                box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
+
+                -webkit-backdrop-filter: blur(18px) saturate(140%);
+                backdrop-filter: blur(18px) saturate(140%);
+
+                /* clip the blur + highlight to rounded corners */
+                overflow: hidden;
+            }
+
+            /* Subtle highlight grain */
+            .mica-surface::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+
+                background: radial-gradient(
+                    1200px circle at 20% 0%,
+                    rgba(255, 255, 255, 0.16),
+                    rgba(255, 255, 255, 0) 55%
+                );
+            }
+
+            .mica-surface > * {
+                position: relative;
+                z-index: 1;
+            }
+
+            /* Keep the button group panel, but make it feel more "acrylic" */
+            .mica-surface .toolbar-2 {
+                background-color: var(--panel-bg);
+            }
+
+            /* Slightly more "opaque" buttons + border containers (visual only) */
+            .mica-surface .btn {
+                box-shadow: inset 0 0 0 1000px
+                    rgba(255, 255, 255, var(--btn-overlay-alpha)) !important;
+            }
+
+            .mica-surface .btn-border {
+                background-color: var(--btn-border-bg) !important;
+                border-radius: 12px;
+            }
+
+            /* Mica-colored buttons: visually blend with the mica surface (no "solid" color) */
+            .mica-surface .btn-border.btn-mica {
+                background: var(--mica-control-bg) !important;
+                border: 1px solid var(--mica-control-border);
+                border-radius: 12px;
+                overflow: hidden;
+
+                -webkit-backdrop-filter: blur(14px) saturate(140%);
+                backdrop-filter: blur(14px) saturate(140%);
+            }
+
+            .mica-surface .btn.btn-mica {
+                background-color: transparent !important;
+                box-shadow: none !important;
+            }
+
+            /* Fallback if backdrop-filter isn't supported */
+            @supports not (
+                (backdrop-filter: blur(1px)) or
+                    (-webkit-backdrop-filter: blur(1px))
+            ) {
+                .mica-surface {
+                    background: rgba(0, 0, 0, 0.55);
+                }
+            }
+        </style>
     </head>
     <body>
         <div id="app">
-            <div class="title">Reveal Effects - Fluent Design</div>
+            <div class="mica-surface">
+                <div class="title">Reveal Effects - Fluent Design</div>
 
-            <div class="effect-group-container toolbar-2">
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 5</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 6</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 7</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 8</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 9</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 10</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 11</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 12</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 13</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 14</button>
-                </div>
-                <br />
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 15</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 16</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 17</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 18</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 19</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 20</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 21</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 22</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 23</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 24</button>
-                </div>
-                <br />
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 25</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 26</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 27</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 28</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 29</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 30</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 31</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 32</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 33</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 34</button>
-                </div>
-                <br />
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 35</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 36</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 37</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 38</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 39</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 40</button>
-                </div>
-                <div class="btn-border btn-black">
-                    <button class="btn btn-black">Button 41</button>
-                </div>
-                <div class="btn-border btn-blue">
-                    <button class="btn btn-blue">Button 42</button>
-                </div>
-                <div class="btn-border btn-red">
-                    <button class="btn btn-red">Button 43</button>
-                </div>
-                <div class="btn-border btn-green">
-                    <button class="btn btn-green">Button 44</button>
-                </div>
-            </div>
+                <div class="effect-group-container toolbar-2">
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 5</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 6</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 7</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 8</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 9</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 10</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 11</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 12</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 13</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 14</button>
+                    </div>
+                    <br />
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 15</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 16</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 17</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 18</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 19</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 20</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 21</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 22</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 23</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 24</button>
+                    </div>
+                    <br />
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 25</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 26</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 27</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 28</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 29</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 30</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 31</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 32</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 33</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 34</button>
+                    </div>
+                    <br />
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 35</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 36</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 37</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 38</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 39</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 40</button>
+                    </div>
+                    <div class="btn-border btn-black">
+                        <button class="btn btn-black">Button 41</button>
+                    </div>
+                    <div class="btn-border btn-blue">
+                        <button class="btn btn-blue">Button 42</button>
+                    </div>
+                    <div class="btn-border btn-red">
+                        <button class="btn btn-red">Button 43</button>
+                    </div>
+                    <div class="btn-border btn-green">
+                        <button class="btn btn-green">Button 44</button>
+                    </div>
 
-            <br /><br /><br /><br /><br /><br />
+                    <div class="btn-border btn-mica">
+                        <button class="btn btn-mica">Mica 1</button>
+                    </div>
+                    <div class="btn-border btn-mica">
+                        <button class="btn btn-mica">Mica 2</button>
+                    </div>
+                    <div class="btn-border btn-mica">
+                        <button class="btn btn-mica">Mica 3</button>
+                    </div>
+                    <div class="btn-border btn-mica">
+                        <button class="btn btn-mica">Mica 4</button>
+                    </div>
+                </div>
 
-            <div class="ref">
-                A
-                <a
-                    href="https://github.com/d2phap/fluent-reveal-effect/"
-                    target="_blank"
-                >
-                    project</a
-                >
-                of
-                <a href="http://www.imageglass.org/about" target="_blank">
-                    Duong Dieu Phap
-                </a>
+                <br /><br /><br /><br /><br /><br />
+
+                <div class="ref">
+                    A
+                    <a
+                        href="https://github.com/commandblock2/fluent-reveal-effect/"
+                        target="_blank"
+                    >
+                        project</a
+                    >
+                    of commandblock2
+                    <br />
+                    Forked from: A
+                    <a
+                        href="https://github.com/d2phap/fluent-reveal-effect/"
+                        target="_blank"
+                    >
+                        project</a
+                    >
+                    of
+                    <a href="http://www.imageglass.org/about" target="_blank">
+                        Duong Dieu Phap
+                    </a>
+                </div>
             </div>
         </div>
         <script type="module" src="/src/main.ts"></script>
