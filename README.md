@@ -1,22 +1,19 @@
 # Reveal Effect library (Fluent Design System)
 Apply reveal effect to border and background of elements.
 
-[![NPM Downloads](https://img.shields.io/npm/d18m/fluent-reveal-effect)](https://www.npmjs.com/package/fluent-reveal-effect)
+
+## Fork
+This is a forked repository from https://github.com/d2phap/fluent-reveal-effect, currently
+
 
 <img width="884" height="580" alt="image" src="https://github.com/user-attachments/assets/f333821f-2269-4604-832b-bf5d4d2e7510" />
 
-### Demo
-See the [Demo project](https://github.com/d2phap/fluent-reveal-effect/tree/main/demo) for detail or visit
-- https://codesandbox.io/p/sandbox/phgz7p
-- https://imageglass.org for live demo.
 
 ## Install
 Run the command
 ```bash
-npm i fluent-reveal-effect@latest
+npm i @commandblock2/fluent-reveal-effect@latest
 ```
-
-NPM package: https://www.npmjs.com/package/fluent-reveal-effect
 
 ## Usage
 ### Base CSS
@@ -96,16 +93,7 @@ applyEffect('.effect-group-container', {
 })
 ```
 
-## Donate
-If you feel this little library useful to you, it would go a great way to ensuring that I can afford to take the time to continue to develop it.
-
-Thanks for your gratitude and finance help!
-
-<a href="https://www.paypal.me/d2phap" target="_blank" title="Buy me a beer?">
-<img src="https://img.shields.io/badge/PayPal-Donate%20$10%20-009be1.svg?maxAge=3600" height="30" alt="Buy me a beer?">
-</a>
-
-
-
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fd2phap%2Ffluent-reveal-effect.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fd2phap%2Ffluent-reveal-effect?ref=badge_large)
+## Usage notes
+- **“Border” elements are wrappers**: the library does not create borders; you provide wrapper elements (e.g., `.btn-border`) and it paints the reveal gradient onto their background. This is how the “border glow” is achieved.
+- **Semi-transparency**: prefer `background-color: rgba(...)` for translucency. Using `opacity` on the element makes the reveal gradient and the text/icon fade together.
+- **Container mode behavior**: the container listens for `mousemove`, then checks each border element to see if the cursor’s gradient radius intersects it. Matching borders get a `radial-gradient` background; others are reset.
