@@ -3,7 +3,7 @@ import {
   type IEffectOptions,
   type IUserEffectOptions,
   type IEnableEffectFunc,
-  type ElementWrapper,
+  type ClickedElement,
 } from './types';
 import {
   preProcessElement,
@@ -33,7 +33,7 @@ function applyEffectOption(userOptions: IUserEffectOptions): IEffectOptions {
 function applyChildrenElementEffect(
   resource: IResource,
   options: IEffectOptions,
-  pressed: ElementWrapper,
+  pressed: ClickedElement,
   enableBackgroundEffectsFunc: IEnableEffectFunc,
 ) {
   enableBackgroundEffectsFunc(resource, options, pressed);
@@ -42,7 +42,7 @@ function applyChildrenElementEffect(
 function applyChildrenEffect(
   resources: IResource[],
   options: IEffectOptions,
-  pressed: ElementWrapper,
+  pressed: ClickedElement,
   enableBackgroundEffectsFunc: IEnableEffectFunc
 ) {
   const resourceL = resources.length;
@@ -57,7 +57,7 @@ function applyChildrenEffect(
 function applyContainerElementEffect(
   resource: IResource,
   options: IEffectOptions,
-  pressed: ElementWrapper,
+  pressed: ClickedElement,
   enableBackgroundEffectsFunc: IEnableEffectFunc,
 ) {
   // Container
@@ -73,8 +73,9 @@ function applyContainerElementEffect(
 export const applyElementEffect = (element: HTMLElement, userOptions: IUserEffectOptions = {}) => {
   const options = applyEffectOption(userOptions);
   const resource = preProcessElement(element);
-  const pressed: ElementWrapper = {
-    element: null
+  const pressed: ClickedElement = {
+    element: null,
+    progress: 0
   };
 
   if (userOptions.clickEffect) {
@@ -84,6 +85,7 @@ export const applyElementEffect = (element: HTMLElement, userOptions: IUserEffec
       const target = event.target;
       if (target instanceof HTMLElement) {
         pressed.element = target;
+        pressed.progress = 1;
       }
     }
     )

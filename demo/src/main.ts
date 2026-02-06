@@ -15,6 +15,5 @@ document.querySelectorAll(".effect-group-container").forEach((elem) => {
       },
     })
   }
-
 })
 

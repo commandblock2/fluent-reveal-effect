@@ -5,8 +5,9 @@ export interface IResource {
 }
 
 // lifetime issue:
-export interface ElementWrapper {
+export interface ClickedElement {
   element: HTMLElement | null
+  progress: number;
 }
 
 
@@ -34,6 +35,6 @@ export type IUserEffectOptions = Partial<IEffectOptions>;
 export interface IEnableEffectFunc {
   (element: IResource,
   options: IEffectOptions,
-  wrapper: ElementWrapper): void;
+  wrapper: ClickedElement): void;
 }
 

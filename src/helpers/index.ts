@@ -2,7 +2,7 @@ import {
   type IResource,
   type IArea,
   type IEffectOptions,
-  type ElementWrapper,
+  type ClickedElement,
 } from "../types";
 
 // ** Postion ******************************************************************
@@ -152,7 +152,7 @@ function enableBackgroundEffects(
   lightColor: string,
   gradientSize: number,
   clickEffect: boolean,
-  pressed: ElementWrapper
+  pressed: ClickedElement
 ) {
   const element = resource.el;
   const moveEvent = "onpointermove" in window ? "pointermove" : "mousemove";
@@ -306,7 +306,7 @@ export function enableBorderEffects(
 export function enableChildrenBackgroundEffetcs(
   resource: IResource,
   options: IEffectOptions,
-  pressed: ElementWrapper
+  pressed: ClickedElement
 ) {
   enableBackgroundEffects(
     resource,
