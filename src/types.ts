@@ -4,8 +4,11 @@ export interface IResource {
   el: HTMLElement;
 }
 
-// ** Mouse ********************************************************************
-export type IIsPressed = [boolean]; // For reference variable
+// lifetime issue:
+export interface ElementWrapper {
+  element: HTMLElement | null
+}
+
 
 export interface IArea {
   left: number;
@@ -31,7 +34,7 @@ export type IUserEffectOptions = Partial<IEffectOptions>;
 
 export interface IEnableEffectFunc {
   (element: IResource,
-    options: IEffectOptions,
-    is_pressed: IIsPressed): void
+  options: IEffectOptions,
+  wrapper: ElementWrapper): void;
 }
 

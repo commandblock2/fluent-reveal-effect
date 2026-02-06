@@ -1,24 +1,31 @@
 import "./style.css";
-import { applyEffect } from "../../src";
+import { applyElementEffect } from "../../src";
 
-applyEffect(".toolbar", {
-  lightColor: "rgba(255,255,255,0.1)",
-  gradientSize: 500,
-});
 
-applyEffect(".toolbar > .btn", {
-  clickEffect: true,
-});
+document.querySelectorAll(".toolbar > .btn").forEach((elem) => {
+  if (elem instanceof HTMLElement) {
+    applyElementEffect(elem, {
+      clickEffect: true
+    })
+  }
 
-applyEffect(".effect-group-container", {
-  clickEffect: true,
-  lightColor: "rgba(255,255,255,0.6)",
-  gradientSize: 80,
-  isContainer: true,
-  children: {
-    borderSelector: ".btn-border",
-    elementSelector: ".btn",
-    lightColor: "rgba(255,255,255,0.3)",
-    gradientSize: 150,
-  },
-});
+})
+
+document.querySelectorAll(".effect-group-container").forEach((elem) => {
+  if (elem instanceof HTMLElement) {
+    applyElementEffect(elem, {
+      clickEffect: true,
+      lightColor: "rgba(255,255,255,0.6)",
+      gradientSize: 80,
+      isContainer: true,
+      children: {
+        borderSelector: ".btn-border",
+        elementSelector: ".btn",
+        lightColor: "rgba(255,255,255,0.3)",
+        gradientSize: 150,
+      },
+    })
+  }
+
+})
+

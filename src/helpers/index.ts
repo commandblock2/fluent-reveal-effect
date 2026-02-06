@@ -1,8 +1,8 @@
 import {
   type IResource,
-  type IIsPressed,
   type IArea,
   type IEffectOptions,
+  type ElementWrapper,
 } from "../types";
 
 // ** Postion ******************************************************************
@@ -117,8 +117,7 @@ function drawClickEffect(
 }
 
 // ** SideEffect Draw Effect ***************************************************
-function clearEffect(resource: IResource, isPressed: IIsPressed) {
-  isPressed[0] = false;
+function clearEffect(resource: IResource) {
   resource.el.style.backgroundImage = resource.oriBg;
 }
 
@@ -127,7 +126,6 @@ function drawContainerHoverEffect(
   rect: DOMRect,
   lightColor: string,
   gradientSize: number,
-  isPressed: IIsPressed,
   cursorX: number,
   cursorY: number,
   lastBackground: string,
@@ -145,7 +143,6 @@ function drawContainerHoverEffect(
   if (lastBackground !== resource.oriBg) {
     resource.el.style.backgroundImage = resource.oriBg;
   }
-  isPressed[0] = false;
   return resource.oriBg;
 }
 
@@ -155,7 +152,7 @@ function enableBackgroundEffects(
   lightColor: string,
   gradientSize: number,
   clickEffect: boolean,
-  isPressed: IIsPressed,
+  pressed: ElementWrapper
 ) {
   const element = resource.el;
   const moveEvent = "onpointermove" in window ? "pointermove" : "mousemove";
@@ -164,7 +161,7 @@ function enableBackgroundEffects(
   element.addEventListener(
     moveEvent,
     (e) => {
-      if (clickEffect && isPressed[0]) {
+      if (clickEffect && pressed.element == element) {
         drawClickEffect(element, lightColor, gradientSize, e);
       } else {
         drawHoverEffect(element, lightColor, gradientSize, e);
@@ -174,7 +171,7 @@ function enableBackgroundEffects(
   );
 
   element.addEventListener(leaveEvent, () => {
-    clearEffect(resource, isPressed);
+    clearEffect(resource);
   });
 }
 
@@ -182,7 +179,6 @@ export function enableBorderEffects(
   resource: IResource,
   childrenBorders: IResource[],
   options: IEffectOptions,
-  isPressed: IIsPressed,
 ) {
   const element = resource.el;
   const childrenBorderL = childrenBorders.length;
@@ -202,7 +198,6 @@ export function enableBorderEffects(
   };
 
   const clearAll = () => {
-    isPressed[0] = false;
     for (let i = 0; i < childrenBorderL; i++) {
       const child = childrenBorders[i];
       const nextBg = child.oriBg;
@@ -239,7 +234,6 @@ export function enableBorderEffects(
         childrenRects[i],
         options.lightColor,
         options.gradientSize,
-        isPressed,
         cursorX,
         cursorY,
         lastBackgrounds[i],
@@ -292,76 +286,31 @@ export function enableBorderEffects(
   window.addEventListener("scroll", updateRects, { passive: true });
 }
 
-function enableClickEffects(
-  resource: IResource,
-  lightColor: string,
-  gradientSize: number,
-  isPressed: IIsPressed,
-) {
-  const element = resource.el;
-  const downEvent = "onpointerdown" in window ? "pointerdown" : "mousedown";
-  const upEvent = "onpointerup" in window ? "pointerup" : "mouseup";
-
-  element.addEventListener(downEvent, (e) => {
-    isPressed[0] = true;
-    drawClickEffect(element, lightColor, gradientSize, e);
-  });
-
-  element.addEventListener(upEvent, (e) => {
-    isPressed[0] = false;
-    drawHoverEffect(element, lightColor, gradientSize, e);
-  });
-}
-
-// Interface
+// Interfacew
 export function enableNormalBackgroundEffetcs(
   resource: IResource,
   options: IEffectOptions,
-  isPressed: IIsPressed,
+  pressed: ElementWrapper
 ) {
   enableBackgroundEffects(
     resource,
     options.lightColor,
     options.gradientSize,
     options.clickEffect,
-    isPressed,
+    pressed
   );
 }
 export function enableChildrenBackgroundEffetcs(
   resource: IResource,
   options: IEffectOptions,
-  isPressed: IIsPressed,
+  pressed: ElementWrapper
 ) {
   enableBackgroundEffects(
     resource,
     options.children?.lightColor || "",
     options.children?.gradientSize || 100,
     options.clickEffect,
-    isPressed,
-  );
-}
-export function enableNormalClickEffects(
-  resource: IResource,
-  options: IEffectOptions,
-  isPressed: IIsPressed,
-) {
-  enableClickEffects(
-    resource,
-    options.lightColor,
-    options.gradientSize,
-    isPressed,
-  );
-}
-export function enableChildrenClickEffects(
-  resource: IResource,
-  options: IEffectOptions,
-  isPressed: IIsPressed,
-) {
-  enableClickEffects(
-    resource,
-    options.children?.lightColor || "",
-    options.children?.gradientSize || 100,
-    isPressed,
+    pressed
   );
 }
 

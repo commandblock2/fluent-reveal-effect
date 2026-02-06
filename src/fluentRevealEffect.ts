@@ -1,18 +1,15 @@
 import {
   type IResource,
-  type IIsPressed,
   type IEffectOptions,
   type IUserEffectOptions,
   type IEnableEffectFunc,
+  type ElementWrapper,
 } from './types';
 import {
   preProcessElement,
-  preProcessElements,
   preProcessSelector,
   enableNormalBackgroundEffetcs,
   enableChildrenBackgroundEffetcs,
-  enableNormalClickEffects,
-  enableChildrenClickEffects,
   enableBorderEffects,
 } from './helpers';
 
@@ -21,7 +18,7 @@ function applyEffectOption(userOptions: IUserEffectOptions): IEffectOptions {
   const defaultOptions: IEffectOptions = {
     lightColor: 'rgba(255,255,255,0.25)',
     gradientSize: 150,
-    clickEffect: false,
+    clickEffect: true,
     isContainer: false,
     children: {
       borderSelector: '.eff-reveal-border',
@@ -38,29 +35,23 @@ function applyEffectOption(userOptions: IUserEffectOptions): IEffectOptions {
 function applyChildrenElementEffect(
   resource: IResource,
   options: IEffectOptions,
-  isPressed: IIsPressed,
+  pressed: ElementWrapper,
   enableBackgroundEffectsFunc: IEnableEffectFunc,
-  enableClickEffectsFunc: IEnableEffectFunc,
 ) {
-  enableBackgroundEffectsFunc(resource, options, isPressed);
-
-  if (options.clickEffect) {
-    enableClickEffectsFunc(resource, options, isPressed);
-  }
+  enableBackgroundEffectsFunc(resource, options, pressed);
 }
 
 function applyChildrenEffect(
   resources: IResource[],
   options: IEffectOptions,
-  isPressed: IIsPressed,
-  enableBackgroundEffectsFunc: IEnableEffectFunc,
-  enableClickEffectsFunc: IEnableEffectFunc,
+  pressed: ElementWrapper,
+  enableBackgroundEffectsFunc: IEnableEffectFunc
 ) {
   const resourceL = resources.length;
 
   for (let i = 0; i < resourceL; i++) {
     const resource = resources[i];
-    applyChildrenElementEffect(resource, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
+    applyChildrenElementEffect(resource, options, pressed, enableBackgroundEffectsFunc);
   }
 }
 
@@ -68,82 +59,51 @@ function applyChildrenEffect(
 function applyContainerElementEffect(
   resource: IResource,
   options: IEffectOptions,
-  isPressed: IIsPressed,
+  pressed: ElementWrapper,
   enableBackgroundEffectsFunc: IEnableEffectFunc,
-  enableClickEffectsFunc: IEnableEffectFunc,
 ) {
   // Container
   const childrenBorders = preProcessSelector(options.children?.borderSelector || '');
-  enableBorderEffects(resource, childrenBorders, options, isPressed);
+  enableBorderEffects(resource, childrenBorders, options);
 
   // Children
   const childrens = preProcessSelector(options.children?.elementSelector || '');
-  applyChildrenEffect(childrens, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
-}
-
-function applyContainerEffect(
-  resources: IResource[],
-  options: IEffectOptions,
-  isPressed: IIsPressed,
-  enableBackgroundEffectsFunc: IEnableEffectFunc,
-  enableClickEffectsFunc: IEnableEffectFunc,
-) {
-  const resourceL = resources.length;
-
-  for (let i = 0; i < resourceL; i++) {
-    const resource = resources[i];
-    applyContainerElementEffect(resource, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
-  }
+  applyChildrenEffect(childrens, options, pressed, enableBackgroundEffectsFunc);
 }
 
 // ** Apply Effect *************************************************************
 export const applyElementEffect = (element: HTMLElement, userOptions: IUserEffectOptions = {}) => {
-  const isPressed: IIsPressed = [false];
   const options = applyEffectOption(userOptions);
   const resource = preProcessElement(element);
+  const pressed: ElementWrapper = {
+    element: null
+  };
+
+  if (userOptions.clickEffect) {
+    const downEvent = "onpointerdown" in window ? "pointerdown" : "mousedown";
+    const upEvent = "onpointerup" in window ? "pointerup" : "mouseup";
+    element.addEventListener(downEvent, event => {
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+          pressed.element = target;
+      }
+    }
+    )
+
+    element.addEventListener(upEvent, _ => {
+      pressed.element = null;
+    }
+    )
+  }
+
 
   if (!options.isContainer) {
     const enableBackgroundEffectsFunc = enableNormalBackgroundEffetcs;
-    const enableClickEffectsFunc = enableNormalClickEffects;
-    applyChildrenElementEffect(resource, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
+    applyChildrenElementEffect(resource, options, pressed, enableBackgroundEffectsFunc);
   }
   else {
     const enableBackgroundEffectsFunc = enableChildrenBackgroundEffetcs;
-    const enableClickEffectsFunc = enableChildrenClickEffects;
-    applyContainerElementEffect(resource, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
+    applyContainerElementEffect(resource, options, pressed, enableBackgroundEffectsFunc);
   }
 };
 
-export const applyElementsEffect = (elements: NodeListOf<HTMLElement>, userOptions: IUserEffectOptions = {}) => {
-  const isPressed: IIsPressed = [false];
-  const options = applyEffectOption(userOptions);
-  const resources = preProcessElements(elements);
-
-  if (!options.isContainer) {
-    const enableBackgroundEffectsFunc = enableNormalBackgroundEffetcs;
-    const enableClickEffectsFunc = enableNormalClickEffects;
-    applyChildrenEffect(resources, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
-  }
-  else {
-    const enableBackgroundEffectsFunc = enableChildrenBackgroundEffetcs;
-    const enableClickEffectsFunc = enableChildrenClickEffects;
-    applyContainerEffect(resources, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
-  }
-};
-
-export const applyEffect = (selector: string, userOptions: IUserEffectOptions = {}) => {
-  const isPressed: IIsPressed = [false];
-  const options = applyEffectOption(userOptions);
-  const resoures = preProcessSelector(selector);
-
-  if (!options.isContainer) {
-    const enableBackgroundEffectsFunc = enableNormalBackgroundEffetcs;
-    const enableClickEffectsFunc = enableNormalClickEffects;
-    applyChildrenEffect(resoures, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
-  }
-  else {
-    const enableBackgroundEffectsFunc = enableChildrenBackgroundEffetcs;
-    const enableClickEffectsFunc = enableChildrenClickEffects;
-    applyContainerEffect(resoures, options, isPressed, enableBackgroundEffectsFunc, enableClickEffectsFunc);
-  }
-};
