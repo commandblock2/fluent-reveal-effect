@@ -1,11 +1,18 @@
 {
   "name": "@commandblock2/fluent-reveal-effect",
   "displayName": "Fluent Reveal Effect",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Reveal Effect (Fluent Design), forked from d2phap",
   "type": "module",
-  "module": "./dist/fluent-reveal-effect.js",
+  "main": "./dist/fluent-reveal-effect.cjs.js",
+  "module": "./dist/fluent-reveal-effect.es.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/fluent-reveal-effect.es.js",
+      "require": "./dist/fluent-reveal-effect.cjs.js"
+    }
+  },
   "files": [
     "dist"
   ],
