@@ -147,33 +147,6 @@
                 box-shadow: none !important;
             }
 
-            /* ------------------------------------------------------------------
-             * Reveal (border effect): mask the glow to the border only
-             *
-             * The library renders the glow on `.eff-reveal-border-fx::before`.
-             * For transparent/mica buttons, we want the glow to appear only as a
-             * border ring, without affecting the background fill.
-             *
-             * NOTE: The library injects its own CSS at runtime. To ensure this
-             * wins, we use a more specific selector scoped to `.mica-surface`.
-             * ------------------------------------------------------------------ */
-            .mica-surface .eff-reveal-border-fx {
-                position: relative;
-                border-radius: inherit;
-            }
-
-            .mica-surface .eff-reveal-border-fx::before {
-                border-radius: inherit;
-                box-sizing: border-box;
-
-                padding: var(--fx-border-width, 1px);
-
-                mask:
-                    linear-gradient(#000 0 0) content-box,
-                    linear-gradient(#000 0 0);
-                mask-composite: exclude;
-            }
-
             /* Fallback if backdrop-filter isn't supported */
             @supports not ((backdrop-filter: blur(1px))) {
                 .mica-surface {

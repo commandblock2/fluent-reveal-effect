@@ -22,6 +22,7 @@ function ensureBorderFxCss() {
 .eff-reveal-border-fx {
   position: relative;
   isolation: isolate;
+  border-radius: inherit;
 }
 
 .eff-reveal-border-fx > * {
@@ -44,6 +45,16 @@ function ensureBorderFxCss() {
     rgba(255,255,255,0)
   );
   will-change: opacity, background-image;
+
+  border-radius: inherit;
+  box-sizing: border-box;
+
+  padding: 1px;
+
+  mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+  mask-composite: exclude;
 }
 
 .eff-reveal-border-fx.eff-reveal-visible::before {
