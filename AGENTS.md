@@ -17,17 +17,17 @@ This document captures maintainers’ notes for improving performance and implem
 - **Avoid repeated DOM queries**  
   Border/child selection is already done once at setup. Keep it that way; avoid re-querying on mousemove.
 
-## Suggested improvements (low risk)
+## Implemented optimizations (container mode)
 
 1. **Throttle via `requestAnimationFrame`**
-   - Store the last mouse event.
+   - Store the last pointer position.
    - Only render once per frame.
-   - This caps updates at ~60fps and avoids “overdraw” during fast mouse movement.
+   - This caps updates at ~60fps and avoids “overdraw” during fast movement.
 
 2. **Cache bounding boxes**
    - Cache border element rects once.
-   - Recompute on `resize`, `scroll`, or content/layout changes.
-   - Use cached rects during mousemove for intersection tests.
+   - Recompute on `resize`, `scroll`, and `pointerenter`.
+   - Use cached rects during pointer move for intersection tests.
 
 3. **Early exit**
    - If the cursor is outside the container bounds, bail before iterating children.
@@ -48,8 +48,8 @@ This document captures maintainers’ notes for improving performance and implem
    - On mousemove, evaluate only nearby candidates.
 
 3. **Pointer events + passive listeners**
-   - Use `pointermove` and `pointerdown` where appropriate.
-   - Mark listeners passive when possible to avoid main-thread blocking.
+   - Implemented `pointermove`/`pointerdown` with mouse fallbacks where needed.
+   - Marked move listeners passive to avoid main-thread blocking.
 
 ## Rendering notes
 

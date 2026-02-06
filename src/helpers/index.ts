@@ -3,17 +3,16 @@ import {
   type IIsPressed,
   type IArea,
   type IEffectOptions,
-} from '../types';
-
+} from "../types";
 
 // ** Postion ******************************************************************
 function getOffset(element: HTMLElement) {
   const bounding = element.getBoundingClientRect();
 
-  return ({
+  return {
     top: bounding.top,
     left: bounding.left,
-  });
+  };
 }
 
 // with Mouse
@@ -25,7 +24,6 @@ function getXY(element: HTMLElement, e: MouseEvent) {
   return [x, y];
 }
 
-
 // for Container
 function intersectRect(r1: IArea, r2: IArea) {
   return !(
@@ -35,7 +33,12 @@ function intersectRect(r1: IArea, r2: IArea) {
     r2.bottom < r1.top
   );
 }
-function isIntersected(element: HTMLElement, cursorX: number, cursorY: number, gradientSize: number) {
+function isIntersected(
+  rect: DOMRect,
+  cursorX: number,
+  cursorY: number,
+  gradientSize: number,
+) {
   const cursorArea: IArea = {
     left: cursorX - gradientSize,
     right: cursorX + gradientSize,
@@ -43,12 +46,11 @@ function isIntersected(element: HTMLElement, cursorX: number, cursorY: number, g
     bottom: cursorY + gradientSize,
   };
 
-  const bounding = element.getBoundingClientRect();
   const elArea: IArea = {
-    left: bounding.left,
-    right: bounding.right,
-    top: bounding.top,
-    bottom: bounding.bottom,
+    left: rect.left,
+    right: rect.right,
+    top: rect.top,
+    bottom: rect.bottom,
   };
 
   const result = intersectRect(cursorArea, elArea);
@@ -56,11 +58,21 @@ function isIntersected(element: HTMLElement, cursorX: number, cursorY: number, g
 }
 
 // ** CSS Effect ***************************************************************
-function lightHoverEffect(gradientSize: number, x: number, y: number, lightColor: string) {
+function lightHoverEffect(
+  gradientSize: number,
+  x: number,
+  y: number,
+  lightColor: string,
+) {
   return `radial-gradient(circle ${gradientSize}px at ${x}px ${y}px, ${lightColor}, rgba(255,255,255,0))`;
 }
 
-function lightClickEffect(gradientSize: number, x: number, y: number, lightColor: string) {
+function lightClickEffect(
+  gradientSize: number,
+  x: number,
+  y: number,
+  lightColor: string,
+) {
   return `${lightHoverEffect(gradientSize, x, y, lightColor)}, radial-gradient(circle ${70}px at ${x}px ${y}px, rgba(255,255,255,0), ${lightColor}, rgba(255,255,255,0), rgba(255,255,255,0))`;
 }
 
@@ -71,21 +83,33 @@ function drawEffect(
   y: number,
   lightColor: string,
   gradientSize: number,
-  cssLightEffect: string | null = null) {
-  const lightBg = cssLightEffect === null
-    ? lightHoverEffect(gradientSize, x, y, lightColor)
-    : cssLightEffect;
+  cssLightEffect: string | null = null,
+) {
+  const lightBg =
+    cssLightEffect === null
+      ? lightHoverEffect(gradientSize, x, y, lightColor)
+      : cssLightEffect;
 
   element.style.backgroundImage = lightBg;
 }
 
 // with Mouse
-function drawHoverEffect(element: HTMLElement, lightColor: string, gradientSize: number, e: MouseEvent) {
+function drawHoverEffect(
+  element: HTMLElement,
+  lightColor: string,
+  gradientSize: number,
+  e: MouseEvent,
+) {
   const [x, y] = getXY(element, e);
   drawEffect(element, x, y, lightColor, gradientSize);
 }
 
-function drawClickEffect(element: HTMLElement, lightColor: string, gradientSize: number, e: MouseEvent) {
+function drawClickEffect(
+  element: HTMLElement,
+  lightColor: string,
+  gradientSize: number,
+  e: MouseEvent,
+) {
   const [x, y] = getXY(element, e);
 
   const cssLightEffect = lightClickEffect(gradientSize, x, y, lightColor);
@@ -98,87 +122,255 @@ function clearEffect(resource: IResource, isPressed: IIsPressed) {
   resource.el.style.backgroundImage = resource.oriBg;
 }
 
-function drawContainerHoverEffect(resource: IResource, lightColor: string, gradientSize: number,
-  isPressed: IIsPressed, e: MouseEvent) {
-  const element = resource.el;
+function drawContainerHoverEffect(
+  resource: IResource,
+  rect: DOMRect,
+  lightColor: string,
+  gradientSize: number,
+  isPressed: IIsPressed,
+  cursorX: number,
+  cursorY: number,
+  lastBackground: string,
+) {
+  if (isIntersected(rect, cursorX, cursorY, gradientSize)) {
+    const x = cursorX - rect.left;
+    const y = cursorY - rect.top;
+    const nextBg = lightHoverEffect(gradientSize, x, y, lightColor);
+    if (nextBg !== lastBackground) {
+      resource.el.style.backgroundImage = nextBg;
+    }
+    return nextBg;
+  }
 
-  if (isIntersected(element, e.clientX, e.clientY, gradientSize)) {
-    drawHoverEffect(element, lightColor, gradientSize, e);
+  if (lastBackground !== resource.oriBg) {
+    resource.el.style.backgroundImage = resource.oriBg;
   }
-  else {
-    clearEffect(resource, isPressed);
-  }
+  isPressed[0] = false;
+  return resource.oriBg;
 }
 
 // Wrapper
-function enableBackgroundEffects(resource: IResource, lightColor: string, gradientSize: number,
-  clickEffect: boolean, isPressed: IIsPressed) {
+function enableBackgroundEffects(
+  resource: IResource,
+  lightColor: string,
+  gradientSize: number,
+  clickEffect: boolean,
+  isPressed: IIsPressed,
+) {
   const element = resource.el;
-  element.addEventListener('mousemove', (e) => {
-    if (clickEffect && isPressed[0]) {
-      drawClickEffect(element, lightColor, gradientSize, e);
-    }
-    else {
-      drawHoverEffect(element, lightColor, gradientSize, e);
-    }
-  });
+  const moveEvent = "onpointermove" in window ? "pointermove" : "mousemove";
+  const leaveEvent = "onpointerleave" in window ? "pointerleave" : "mouseleave";
 
-  element.addEventListener('mouseleave', () => {
+  element.addEventListener(
+    moveEvent,
+    (e) => {
+      if (clickEffect && isPressed[0]) {
+        drawClickEffect(element, lightColor, gradientSize, e);
+      } else {
+        drawHoverEffect(element, lightColor, gradientSize, e);
+      }
+    },
+    { passive: true },
+  );
+
+  element.addEventListener(leaveEvent, () => {
     clearEffect(resource, isPressed);
   });
 }
 
-export function enableBorderEffects(resource: IResource, childrenBorders: IResource[], options: IEffectOptions, isPressed: IIsPressed) {
+export function enableBorderEffects(
+  resource: IResource,
+  childrenBorders: IResource[],
+  options: IEffectOptions,
+  isPressed: IIsPressed,
+) {
   const element = resource.el;
   const childrenBorderL = childrenBorders.length;
+  let containerRect = element.getBoundingClientRect();
+  const childrenRects = childrenBorders.map((child) =>
+    child.el.getBoundingClientRect(),
+  );
+  const lastBackgrounds = childrenBorders.map((child) => child.oriBg);
+  let rafId: number | null = null;
+  let lastCursor: { x: number; y: number } | null = null;
 
-  element.addEventListener('mousemove', (e) => {
+  const updateRects = () => {
+    containerRect = element.getBoundingClientRect();
     for (let i = 0; i < childrenBorderL; i++) {
-      drawContainerHoverEffect(childrenBorders[i], options.lightColor, options.gradientSize, isPressed, e);
+      childrenRects[i] = childrenBorders[i].el.getBoundingClientRect();
+    }
+  };
+
+  const clearAll = () => {
+    isPressed[0] = false;
+    for (let i = 0; i < childrenBorderL; i++) {
+      const child = childrenBorders[i];
+      const nextBg = child.oriBg;
+      if (lastBackgrounds[i] !== nextBg) {
+        child.el.style.backgroundImage = nextBg;
+        lastBackgrounds[i] = nextBg;
+      }
+    }
+  };
+
+  const render = () => {
+    if (!lastCursor) {
+      rafId = null;
+      return;
+    }
+
+    const cursorX = lastCursor.x;
+    const cursorY = lastCursor.y;
+
+    if (
+      cursorX < containerRect.left ||
+      cursorX > containerRect.right ||
+      cursorY < containerRect.top ||
+      cursorY > containerRect.bottom
+    ) {
+      clearAll();
+      rafId = null;
+      return;
+    }
+
+    for (let i = 0; i < childrenBorderL; i++) {
+      lastBackgrounds[i] = drawContainerHoverEffect(
+        childrenBorders[i],
+        childrenRects[i],
+        options.lightColor,
+        options.gradientSize,
+        isPressed,
+        cursorX,
+        cursorY,
+        lastBackgrounds[i],
+      );
+    }
+
+    rafId = null;
+  };
+
+  const scheduleRender = () => {
+    if (rafId !== null) {
+      return;
+    }
+    rafId = requestAnimationFrame(render);
+  };
+
+  updateRects();
+
+  const enterEvent = "onpointerenter" in window ? "pointerenter" : "mouseenter";
+  const moveEvent = "onpointermove" in window ? "pointermove" : "mousemove";
+  const leaveEvent = "onpointerleave" in window ? "pointerleave" : "mouseleave";
+
+  element.addEventListener(
+    enterEvent,
+    () => {
+      updateRects();
+    },
+    { passive: true },
+  );
+
+  element.addEventListener(
+    moveEvent,
+    (e) => {
+      lastCursor = { x: e.clientX, y: e.clientY };
+      scheduleRender();
+    },
+    { passive: true },
+  );
+
+  element.addEventListener(leaveEvent, () => {
+    clearAll();
+    lastCursor = null;
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
     }
   });
 
-  element.addEventListener('mouseleave', () => {
-    for (let i = 0; i < childrenBorderL; i++) {
-      clearEffect(childrenBorders[i], isPressed);
-    }
-  });
+  window.addEventListener("resize", updateRects, { passive: true });
+  window.addEventListener("scroll", updateRects, { passive: true });
 }
 
-function enableClickEffects(resource: IResource, lightColor: string, gradientSize: number,
-  isPressed: IIsPressed) {
+function enableClickEffects(
+  resource: IResource,
+  lightColor: string,
+  gradientSize: number,
+  isPressed: IIsPressed,
+) {
   const element = resource.el;
-  element.addEventListener('mousedown', (e) => {
+  const downEvent = "onpointerdown" in window ? "pointerdown" : "mousedown";
+  const upEvent = "onpointerup" in window ? "pointerup" : "mouseup";
+
+  element.addEventListener(downEvent, (e) => {
     isPressed[0] = true;
     drawClickEffect(element, lightColor, gradientSize, e);
   });
 
-  element.addEventListener('mouseup', (e) => {
+  element.addEventListener(upEvent, (e) => {
     isPressed[0] = false;
     drawHoverEffect(element, lightColor, gradientSize, e);
   });
 }
 
 // Interface
-export function enableNormalBackgroundEffetcs(resource: IResource, options: IEffectOptions, isPressed: IIsPressed) {
-  enableBackgroundEffects(resource, options.lightColor, options.gradientSize, options.clickEffect, isPressed);
+export function enableNormalBackgroundEffetcs(
+  resource: IResource,
+  options: IEffectOptions,
+  isPressed: IIsPressed,
+) {
+  enableBackgroundEffects(
+    resource,
+    options.lightColor,
+    options.gradientSize,
+    options.clickEffect,
+    isPressed,
+  );
 }
-export function enableChildrenBackgroundEffetcs(resource: IResource, options: IEffectOptions, isPressed: IIsPressed) {
-  enableBackgroundEffects(resource, options.children?.lightColor || '', options.children?.gradientSize || 100, options.clickEffect, isPressed);
+export function enableChildrenBackgroundEffetcs(
+  resource: IResource,
+  options: IEffectOptions,
+  isPressed: IIsPressed,
+) {
+  enableBackgroundEffects(
+    resource,
+    options.children?.lightColor || "",
+    options.children?.gradientSize || 100,
+    options.clickEffect,
+    isPressed,
+  );
 }
-export function enableNormalClickEffects(resource: IResource, options: IEffectOptions, isPressed: IIsPressed) {
-  enableClickEffects(resource, options.lightColor, options.gradientSize, isPressed);
+export function enableNormalClickEffects(
+  resource: IResource,
+  options: IEffectOptions,
+  isPressed: IIsPressed,
+) {
+  enableClickEffects(
+    resource,
+    options.lightColor,
+    options.gradientSize,
+    isPressed,
+  );
 }
-export function enableChildrenClickEffects(resource: IResource, options: IEffectOptions, isPressed: IIsPressed) {
-  enableClickEffects(resource, options.children?.lightColor || '', options.children?.gradientSize || 100, isPressed);
+export function enableChildrenClickEffects(
+  resource: IResource,
+  options: IEffectOptions,
+  isPressed: IIsPressed,
+) {
+  enableClickEffects(
+    resource,
+    options.children?.lightColor || "",
+    options.children?.gradientSize || 100,
+    isPressed,
+  );
 }
 
 // ** Element Processing *******************************************************
 export function preProcessElement(element: HTMLElement): IResource {
-  return ({
+  return {
     oriBg: getComputedStyle(element).backgroundImage,
     el: element,
-  });
+  };
 }
 
 export function preProcessElements(elements: NodeListOf<HTMLElement>) {
