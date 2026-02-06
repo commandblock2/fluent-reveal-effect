@@ -74,12 +74,11 @@
                 margin: 0 auto;
                 padding: 2.25rem 2rem;
 
-                border-radius: 18px;
+                border-radius: 0px;
                 background: var(--mica-surface-bg);
                 border: 1px solid var(--mica-surface-border);
                 box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
 
-                -webkit-backdrop-filter: blur(18px) saturate(140%);
                 backdrop-filter: blur(18px) saturate(140%);
 
                 /* clip the blur + highlight to rounded corners */
@@ -118,17 +117,28 @@
 
             .mica-surface .btn-border {
                 background-color: var(--btn-border-bg) !important;
-                border-radius: 12px;
+                border-radius: 0px;
+
+                /* Reveal (border effect): thickness of the "ring" mask */
+                --fx-border-width: 1px;
             }
 
             /* Mica-colored buttons: visually blend with the mica surface (no "solid" color) */
             .mica-surface .btn-border.btn-mica {
                 background: var(--mica-control-bg) !important;
-                border: 1px solid var(--mica-control-border);
-                border-radius: 12px;
-                overflow: hidden;
+                /* border: 1px solid color-mix(in srgb, var(--mica-control-border) 80, black 20) ; */
+                border-radius: 0px;
+                /* overflow: hidden; */
 
-                -webkit-backdrop-filter: blur(14px) saturate(140%);
+                /* backdrop-filter: blur(14px) saturate(140%); */
+            }
+
+            .mica-surface .btn-border.btn-mica-double {
+                background: var(--mica-control-bg) !important;
+                /* border: 1px solid color-mix(in srgb, var(--mica-control-border) 80, black 20) ; */
+                border-radius: 0px;
+                /* overflow: hidden; */
+
                 backdrop-filter: blur(14px) saturate(140%);
             }
 
@@ -137,11 +147,35 @@
                 box-shadow: none !important;
             }
 
+            /* ------------------------------------------------------------------
+             * Reveal (border effect): mask the glow to the border only
+             *
+             * The library renders the glow on `.eff-reveal-border-fx::before`.
+             * For transparent/mica buttons, we want the glow to appear only as a
+             * border ring, without affecting the background fill.
+             *
+             * NOTE: The library injects its own CSS at runtime. To ensure this
+             * wins, we use a more specific selector scoped to `.mica-surface`.
+             * ------------------------------------------------------------------ */
+            .mica-surface .eff-reveal-border-fx {
+                position: relative;
+                border-radius: inherit;
+            }
+
+            .mica-surface .eff-reveal-border-fx::before {
+                border-radius: inherit;
+                box-sizing: border-box;
+
+                padding: var(--fx-border-width, 1px);
+
+                mask:
+                    linear-gradient(#000 0 0) content-box,
+                    linear-gradient(#000 0 0);
+                mask-composite: exclude;
+            }
+
             /* Fallback if backdrop-filter isn't supported */
-            @supports not (
-                (backdrop-filter: blur(1px)) or
-                    (-webkit-backdrop-filter: blur(1px))
-            ) {
+            @supports not ((backdrop-filter: blur(1px))) {
                 .mica-surface {
                     background: rgba(0, 0, 0, 0.55);
                 }
@@ -278,16 +312,18 @@
                         <button class="btn btn-green">Button 44</button>
                     </div>
 
+                    <br />
+
                     <div class="btn-border btn-mica">
                         <button class="btn btn-mica">Mica 1</button>
                     </div>
-                    <div class="btn-border btn-mica">
-                        <button class="btn btn-mica">Mica 2</button>
+                    <div class="btn-border btn-semi-blue">
+                        <button class="btn btn-semi-blue">Mica 2</button>
                     </div>
-                    <div class="btn-border btn-mica">
+                    <div class="btn-border btn-mica-double">
                         <button class="btn btn-mica">Mica 3</button>
                     </div>
-                    <div class="btn-border btn-mica">
+                    <div class="btn-border btn-mica-double">
                         <button class="btn btn-mica">Mica 4</button>
                     </div>
                 </div>

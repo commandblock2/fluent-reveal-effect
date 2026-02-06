@@ -44,6 +44,10 @@ body {
   box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.1);
 }
 
+.btn-semi-blue {
+  background-color: #005cb996;
+}
+
 .btn-blue {
   background-color: #005db9;
 }

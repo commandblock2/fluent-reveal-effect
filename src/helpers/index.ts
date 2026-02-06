@@ -5,6 +5,54 @@ import {
   type ClickedElement,
 } from "../types";
 
+let _borderFxCssInjected = false;
+
+function ensureBorderFxCss() {
+  if (_borderFxCssInjected) return;
+  _borderFxCssInjected = true;
+
+  const style = document.createElement("style");
+  style.setAttribute("data-fluent-reveal-effect", "border-fx");
+  style.textContent = `
+:root {
+  --fx-x: 0px;
+  --fx-y: 0px;
+}
+
+.eff-reveal-border-fx {
+  position: relative;
+  isolation: isolate;
+}
+
+.eff-reveal-border-fx > * {
+  position: relative;
+  z-index: 1;
+}
+
+.eff-reveal-border-fx::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  background-image: radial-gradient(
+    circle var(--fx-size) at calc(var(--fx-x) - var(--fx-left)) calc(var(--fx-y) - var(--fx-top)),
+    var(--fx-color),
+    rgba(255,255,255,0)
+  );
+  will-change: opacity, background-image;
+}
+
+.eff-reveal-border-fx.eff-reveal-visible::before {
+  opacity: 1;
+}
+`;
+  document.head.appendChild(style);
+}
+
 // ** Postion ******************************************************************
 function getOffset(element: HTMLElement) {
   const bounding = element.getBoundingClientRect();
@@ -121,38 +169,13 @@ function clearEffect(resource: IResource) {
   resource.el.style.backgroundImage = resource.oriBg;
 }
 
-function drawContainerHoverEffect(
-  resource: IResource,
-  rect: DOMRect,
-  lightColor: string,
-  gradientSize: number,
-  cursorX: number,
-  cursorY: number,
-  lastBackground: string,
-) {
-  if (isIntersected(rect, cursorX, cursorY, gradientSize)) {
-    const x = cursorX - rect.left;
-    const y = cursorY - rect.top;
-    const nextBg = lightHoverEffect(gradientSize, x, y, lightColor);
-    if (nextBg !== lastBackground) {
-      resource.el.style.backgroundImage = nextBg;
-    }
-    return nextBg;
-  }
-
-  if (lastBackground !== resource.oriBg) {
-    resource.el.style.backgroundImage = resource.oriBg;
-  }
-  return resource.oriBg;
-}
-
 // Wrapper
 function enableBackgroundEffects(
   resource: IResource,
   lightColor: string,
   gradientSize: number,
   clickEffect: boolean,
-  pressed: ClickedElement
+  pressed: ClickedElement,
 ) {
   const element = resource.el;
   const moveEvent = "onpointermove" in window ? "pointermove" : "mousemove";
@@ -161,18 +184,14 @@ function enableBackgroundEffects(
   if (clickEffect) {
     const downEvent = "onpointerdown" in window ? "pointerdown" : "mousedown";
     const upEvent = "onpointerup" in window ? "pointerup" : "mouseup";
-    element.addEventListener(
-      downEvent, event => {
-        drawClickEffect(element, lightColor, gradientSize, event)
-      }
-    )
+    element.addEventListener(downEvent, (event) => {
+      drawClickEffect(element, lightColor, gradientSize, event);
+    });
 
-    element.addEventListener(
-      upEvent, event => {
-        clearEffect(resource)
-        drawHoverEffect(element, lightColor, gradientSize, event)
-      }
-    )
+    element.addEventListener(upEvent, (event) => {
+      clearEffect(resource);
+      drawHoverEffect(element, lightColor, gradientSize, event);
+    });
   }
 
   element.addEventListener(
@@ -197,33 +216,49 @@ export function enableBorderEffects(
   childrenBorders: IResource[],
   options: IEffectOptions,
 ) {
+  ensureBorderFxCss();
+
   const element = resource.el;
+  const root = document.documentElement;
+
   const childrenBorderL = childrenBorders.length;
   let containerRect = element.getBoundingClientRect();
   const childrenRects = childrenBorders.map((child) =>
     child.el.getBoundingClientRect(),
   );
-  const lastBackgrounds = childrenBorders.map((child) => child.oriBg);
-  let rafId: number | null = null;
-  let lastCursor: { x: number; y: number } | null = null;
+
+  // Toggle visibility class only when intersection state changes
+  const lastVisible: boolean[] = childrenBorders.map(() => false);
 
   const updateRects = () => {
     containerRect = element.getBoundingClientRect();
+
     for (let i = 0; i < childrenBorderL; i++) {
-      childrenRects[i] = childrenBorders[i].el.getBoundingClientRect();
+      const child = childrenBorders[i].el;
+      const r = child.getBoundingClientRect();
+      childrenRects[i] = r;
+
+      child.classList.add("eff-reveal-border-fx");
+      child.style.setProperty("--fx-left", `${r.left}px`);
+      child.style.setProperty("--fx-top", `${r.top}px`);
+      child.style.setProperty("--fx-size", `${options.gradientSize}px`);
+      child.style.setProperty("--fx-color", `${options.lightColor}`);
     }
   };
 
   const clearAll = () => {
     for (let i = 0; i < childrenBorderL; i++) {
       const child = childrenBorders[i];
-      const nextBg = child.oriBg;
-      if (lastBackgrounds[i] !== nextBg) {
-        child.el.style.backgroundImage = nextBg;
-        lastBackgrounds[i] = nextBg;
+
+      if (lastVisible[i]) {
+        child.el.classList.remove("eff-reveal-visible");
+        lastVisible[i] = false;
       }
     }
   };
+
+  let rafId: number | null = null;
+  let lastCursor: { x: number; y: number } | null = null;
 
   const render = () => {
     if (!lastCursor) {
@@ -245,16 +280,25 @@ export function enableBorderEffects(
       return;
     }
 
+    // One write per frame: global pointer coords in client space
+    root.style.setProperty("--fx-x", `${cursorX}px`);
+    root.style.setProperty("--fx-y", `${cursorY}px`);
+
     for (let i = 0; i < childrenBorderL; i++) {
-      lastBackgrounds[i] = drawContainerHoverEffect(
-        childrenBorders[i],
+      const intersect = isIntersected(
         childrenRects[i],
-        options.lightColor,
-        options.gradientSize,
         cursorX,
         cursorY,
-        lastBackgrounds[i],
+        options.gradientSize,
       );
+
+      if (intersect && !lastVisible[i]) {
+        childrenBorders[i].el.classList.add("eff-reveal-visible");
+        lastVisible[i] = true;
+      } else if (!intersect && lastVisible[i]) {
+        childrenBorders[i].el.classList.remove("eff-reveal-visible");
+        lastVisible[i] = false;
+      }
     }
 
     rafId = null;
@@ -306,14 +350,14 @@ export function enableBorderEffects(
 export function enableChildrenBackgroundEffetcs(
   resource: IResource,
   options: IEffectOptions,
-  pressed: ClickedElement
+  pressed: ClickedElement,
 ) {
   enableBackgroundEffects(
     resource,
     options.children?.lightColor || "",
     options.children?.gradientSize || 100,
     options.clickEffect,
-    pressed
+    pressed,
   );
 }
 
